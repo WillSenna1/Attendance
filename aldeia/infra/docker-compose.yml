@@ -1,0 +1,53 @@
+version: '3.8'
+
+networks:
+  network:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:13
+    container_name: database
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: aldeia
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - network
+
+  api:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+      DATABASE_URL: "postgres://root:root@db:5432/aldeia"
+      JWT_SECRET: "XksQQO4mZu>oLC[(D;~101Sf!tv]pS"
+    ports:
+      - "3333:3333"
+    depends_on:
+      - db
+    networks:
+      - network
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    container_name: front
+    environment:
+      VITE_API_URL: "http://192.168.0.249:3333"
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - network
+
+volumes:
+  postgres-data:
+    driver: local

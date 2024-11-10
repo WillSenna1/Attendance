@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------- ENUMS -----------------------------------------------------
+
+enum Role {
+  TEACHER
+  MANAGER
+}
+
+enum EmploymentType {
+  CLT
+  CNPJ
+}
+
+// ----------------------------------------------------- MODELS -----------------------------------------------------
+
+model User {
+  id           String  @id @default(uuid())
+  name         String
+  email        String
+  password     String
+  imageUrl     String
+  phone        String?
+  street       String?
+  neighborhood String?
+  city         String?
+  state        String?
+  zipCode      String?
+  role         Role
+
+  teachers    Teacher[]
+  managers    Manager[]
+  onboardings Onboarding[]
+  employments Employment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Onboarding {
+  id     String  @id @default(uuid())
+  userId String
+  done   Boolean
+  user   User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Employment {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  cpf         String?
+  rg          String?
+  cnpj        String?
+  companyName String?
+  type        EmploymentType
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Manager {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Teacher {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  classes   Classe[]
+}
+
+model Student {
+  id            String  @id @default(uuid())
+  name          String
+  email         String
+  cpf           String?
+  rg            String?
+  nis           String?
+  observation   String?
+  priorityGroup String?
+  recordNumber  String?
+  forwarding    String?
+  phone         String?
+  imageUrl      String?
+  street        String?
+  neighborhood  String?
+  city          String?
+  state         String?
+  zipCode       String?
+
+  classes Classe? @relation(fields: [classId], references: [id])
+  classId String?
+
+  responsibles Responsible[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Responsible {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Classe {
+  id       String    @id @default(uuid())
+  name     String
+  teachers Teacher[]
+  students Student[]
+  lessons  Lesson[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lesson {
+  id        String   @id @default(uuid())
+  name      String
+  classe    Classe   @relation(fields: [classeId], references: [id])
+  classeId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
